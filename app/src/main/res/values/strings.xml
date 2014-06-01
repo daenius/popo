@@ -9,5 +9,16 @@
     <string name="title_activity_fullscreen">FullscreenActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="hello_blank_fragment">
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus quis mauris nec lectus rutrum tristique. Praesent a turpis vitae eros imperdiet condimentum. Maecenas sit amet tristique tellus. Morbi sapien erat, bibendum sit amet sapien a, malesuada tempor lectus. Nam ac rhoncus orci. Proin ac diam aliquet, vehicula neque vitae, consectetur quam. Aliquam pellentesque massa arcu, a sollicitudin ante mollis ac. Suspendisse cursus dolor quis nisi egestas lobortis. Donec sagittis id nisi sit amet tristique.
+
+Etiam fermentum eget risus non pulvinar. Fusce nec dolor orci. Maecenas vel scelerisque metus. Donec porta ornare pellentesque. Sed iaculis ornare cursus. Mauris lobortis varius dolor, nec venenatis risus gravida a. Nullam ac egestas augue, quis molestie mi.
+
+Vivamus sit amet faucibus lectus. Vivamus egestas, eros sit amet pretium laoreet, odio nisi pharetra nisi, quis ultrices erat tellus nec lacus. Proin elementum faucibus augue, vitae commodo nibh. Cras sed justo tristique, blandit libero a, dignissim nunc. Ut pulvinar dui diam, vitae luctus ipsum dapibus nec. Phasellus risus ipsum, sagittis vitae dignissim et, lobortis ac dolor. Donec eu iaculis lacus, vel rhoncus dui. Praesent aliquam, turpis ut imperdiet tincidunt, ante leo tincidunt augue, nec interdum nisi velit vitae sem. Quisque sollicitudin elementum elit, sit amet egestas nunc auctor in. Nullam faucibus facilisis nisl, vitae viverra metus ultrices vitae. Donec feugiat fermentum vestibulum. Praesent rutrum nisi volutpat mollis suscipit. Sed tincidunt vulputate nibh vel fringilla. Aliquam consequat ultrices tortor vel vulputate. Nam at tempus lectus.
+
+Quisque ac massa sed dolor dapibus ullamcorper. Mauris nec sapien dignissim, aliquam massa in, porta mi. Sed eu ultrices magna. Donec id consectetur purus, malesuada porta elit. Etiam commodo dolor vel nulla venenatis, iaculis aliquam magna vestibulum. Ut facilisis leo dui, eget facilisis justo feugiat a. Vivamus volutpat enim at leo auctor rhoncus. Nunc ultricies lorem non tincidunt scelerisque. Donec luctus luctus purus vitae rutrum. Donec tempus rhoncus elit non porttitor. Phasellus facilisis tellus sed erat pharetra, eget iaculis nunc egestas.
+
+Curabitur mollis nibh quis elementum bibendum. Quisque gravida semper eros, a tempus velit suscipit pharetra. Etiam leo sem, sollicitudin at dolor sit amet, tristique commodo justo. Quisque tristique interdum diam non pulvinar. Quisque ultricies, mi quis placerat lacinia, felis quam convallis magna, et accumsan urna purus eu mi. Sed blandit nisl vel odio sollicitudin semper. Praesent consectetur scelerisque ante vel eleifend. Donec eget purus urna. Quisque libero lectus, pulvinar in nulla non, placerat imperdiet velit. Nunc arcu tellus, mattis rutrum rhoncus non, sagittis rutrum justo. Pellentesque elit turpis, sagittis non dui scelerisque, ultrices faucibus leo. Sed eu magna vestibulum, sodales felis mattis, laoreet nisi. Nunc venenatis sit amet neque nec convallis. Donec sit amet iaculis erat, id semper nibh. Nullam cursus iaculis magna vitae lobortis. Nullam vel magna id erat viverra tincidunt.</string>
 
 </resources>
