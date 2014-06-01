@@ -1,6 +1,5 @@
 package com.popo.mrpopo;
 
-import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -8,7 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.Window;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -26,7 +24,6 @@ import com.popo.mrpopo.util.AppConstants;
 public class MainActivity extends FragmentActivity implements LandmarkContentFragment.OnFragmentInteractionListener, GoogleMap.OnMarkerClickListener, LocationListener, LocationSource {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
-
     private OnLocationChangedListener mLocationChangeListener;
     private LocationManager locationManager;
     private Marker myMarker;
@@ -41,7 +38,6 @@ public class MainActivity extends FragmentActivity implements LandmarkContentFra
         setContentView(rootView);
         locationServiceSetup();
         setUpMapIfNeeded();
-
     }
 
     private void locationServiceSetup() {

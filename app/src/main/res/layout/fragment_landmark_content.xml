@@ -8,9 +8,18 @@
     android:background="#ffffffff">
 
     <!-- TODO: Update blank fragment layout -->
+    <ScrollView
+        android:id="@+id/contexttextscroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        android:overScrollMode="always"
+        android:scrollbarDefaultDelayBeforeFade="0"
+        android:scrollbarStyle="outsideOverlay">
     <TextView
+        android:id="@+id/contenttext"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:text="@string/hello_blank_fragment" />
-
+    </ScrollView>
 </FrameLayout>

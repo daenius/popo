@@ -1,14 +1,13 @@
 package com.popo.mrpopo;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 
 
 /**
@@ -18,7 +17,6 @@ import android.view.ViewGroup;
  * to handle interaction events.
  * Use the {@link LandmarkContentFragment#newInstance} factory method to
  * create an instance of this fragment.
- *
  */
 public class LandmarkContentFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
@@ -49,6 +47,7 @@ public class LandmarkContentFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
     public LandmarkContentFragment() {
         // Required empty public constructor
     }
@@ -66,7 +65,8 @@ public class LandmarkContentFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_landmark_content, container, false);
+        View view = inflater.inflate(R.layout.fragment_landmark_content, container, false);
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -86,6 +86,7 @@ public class LandmarkContentFragment extends Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+
     }
 
     @Override
@@ -94,12 +95,13 @@ public class LandmarkContentFragment extends Fragment {
         mListener = null;
     }
 
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
+     * <p/>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.

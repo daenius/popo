@@ -4,9 +4,7 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 import android.widget.LinearLayout;
-import android.widget.Scroller;
 
 import com.popo.mrpopo.util.AppConstants;
 
@@ -21,6 +19,7 @@ public class FragmentViewContainer extends LinearLayout {
     }
 
     private View landmarkContent;
+
     public enum ContentFragmentState {
         CLOSED, OPEN
     }
@@ -62,8 +61,8 @@ public class FragmentViewContainer extends LinearLayout {
         this.landmarkContent.layout(left, top, right, bottom);
     }
 
-    public void toggleContent(){
-        switch (this.currentContentFragmentState ){
+    public void toggleContent() {
+        switch (this.currentContentFragmentState) {
             case CLOSED:
                 this.landmarkContent.setVisibility(View.VISIBLE);
                 this.currentContentFragmentState = ContentFragmentState.OPEN;
@@ -76,14 +75,17 @@ public class FragmentViewContainer extends LinearLayout {
 
         this.invalidate();
     }
-    private void calculateViewDimensions(){
+
+    private void calculateViewDimensions() {
         calculateContentViewDimension();
         calculateMapViewDimension();
     }
-    private void calculateMapViewDimension(){
+
+    private void calculateMapViewDimension() {
         this.mapView.getLayoutParams().height = this.getHeight();
         this.mapView.getLayoutParams().width = this.getWidth();
     }
+
     private void calculateContentViewDimension() {
         this.landmarkContent.getLayoutParams().height = this.getHeight();
         this.landmarkContent.getLayoutParams().width = this.getWidth();
