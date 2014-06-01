@@ -47,8 +47,8 @@ public class FragmentViewContainer extends LinearLayout {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        this.mapView = this.getChildAt(0);
-        this.landmarkContent = this.getChildAt(1);
+        this.mapView = this.findViewById(R.id.mapfragmentlayout);
+        this.landmarkContent = this.findViewById(R.id.landmarkcontentlayout);
         this.landmarkContent.setVisibility(View.GONE);
     }
 
