@@ -59,7 +59,7 @@ public class FragmentViewContainer extends LinearLayout {
             this.calculateViewDimensions();
         }
         this.mapView.layout(left, top, right, bottom);
-        this.landmarkContent.layout(left + contentFragmentMargin, top, right, bottom);
+        this.landmarkContent.layout(left, top, right, bottom);
     }
 
     public void toggleContent(){
@@ -84,8 +84,8 @@ public class FragmentViewContainer extends LinearLayout {
         this.mapView.getLayoutParams().height = this.getHeight();
         this.mapView.getLayoutParams().width = this.getWidth();
     }
-    private void calculateContentViewDimension(){
+    private void calculateContentViewDimension() {
         this.landmarkContent.getLayoutParams().height = this.getHeight();
-        this.landmarkContent.getLayoutParams().width = this.getWidth() - contentFragmentMargin;
+        this.landmarkContent.getLayoutParams().width = this.getWidth();
     }
 }
