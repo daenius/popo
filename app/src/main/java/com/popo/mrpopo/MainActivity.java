@@ -145,6 +145,7 @@ public class MainActivity extends FragmentActivity implements LandmarkContentFra
 
             CameraUpdate cu = CameraUpdateFactory.newCameraPosition(cameraPositionBuilder.build());
             mMap.animateCamera(cu);
+            mMap.clear();
             myMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())));
         }
     }
