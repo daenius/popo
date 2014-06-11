@@ -3,10 +3,14 @@ package com.popo.mrpopo;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.VelocityTracker;
+import android.view.View;
 import android.view.Window;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -21,21 +25,39 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.popo.mrpopo.util.AppConstants;
 
 
-public class MainActivity extends FragmentActivity implements LandmarkContentFragment.OnFragmentInteractionListener, GoogleMap.OnMarkerClickListener, LocationListener, LocationSource {
+public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener, LocationListener, LocationSource {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private OnLocationChangedListener mLocationChangeListener;
     private LocationManager locationManager;
     private Marker myMarker;
-    FragmentViewContainer rootView;
+
+    RightPanel rightPanel;
+
+    private int windowWidth;
+
+    private VelocityTracker mVelocityTracker = null;
+    private int xVelocityThreshold;
+    private int xPositionThreshold;
+    private final double X_POSITION_THRESHOLD_RATIO = 0.4;
+    private final double X_VELOCITY_THRESHOLD_RATIO = 0.20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         getActionBar().hide();
-        this.rootView = (FragmentViewContainer) this.getLayoutInflater().inflate(R.layout.activity_main, null);
-        setContentView(rootView);
+        setContentView(R.layout.activity_main);
+        rightPanel = (RightPanel) findViewById(R.id.rightpanel);
+        rightPanel.setVisibility(View.GONE);
+
+        DisplayMetrics dm = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(dm);
+        this.windowWidth = dm.widthPixels;
+        rightPanel.setX(this.windowWidth);
+        rightPanel.setWindowWidth(this.windowWidth);
+        this.xPositionThreshold = (int) (this.windowWidth * X_POSITION_THRESHOLD_RATIO);
+        this.xVelocityThreshold = (int) (this.windowWidth * X_VELOCITY_THRESHOLD_RATIO);
         locationServiceSetup();
         setUpMapIfNeeded();
     }
@@ -48,10 +70,11 @@ public class MainActivity extends FragmentActivity implements LandmarkContentFra
             boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             if (isGpsEnabled) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, AppConstants.LOCATION_UPDATE_TIME_INTERVAL, AppConstants.LOCATION_UPDATE_DISTANCE_INTERVAL, this);
-            } else if (isNetworkEnabled) {
+            }
+            if (isNetworkEnabled) {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, AppConstants.LOCATION_UPDATE_TIME_INTERVAL, AppConstants.LOCATION_UPDATE_DISTANCE_INTERVAL, this);
             } else {
-                // No GPS nor Network
+                // FIX ME: No GPS nor Network
             }
         } else {
             // Something is wrong with location manager
@@ -83,19 +106,15 @@ public class MainActivity extends FragmentActivity implements LandmarkContentFra
     }
 
     public void toggleContent() {
-        this.rootView.toggleContent();
-    }
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
+        this.rightPanel.togglePanel();
     }
 
     @Override
     public void onBackPressed() {
-        if (rootView.getCurrentContentFragmentState() == FragmentViewContainer.ContentFragmentState.OPEN) {
-            this.toggleContent();
-        } else {
+        if( this.rightPanel.getCurrentContentFragmentState() == RightPanel.ContentFragmentState.OPEN){
+            this.rightPanel.togglePanel();
+        }
+        else{
             super.onBackPressed();
         }
     }
@@ -170,5 +189,43 @@ public class MainActivity extends FragmentActivity implements LandmarkContentFra
     public void deactivate() {
 
         mLocationChangeListener = null;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent motionEvent) {
+        if (rightPanel.getCurrentContentFragmentState() == RightPanel.ContentFragmentState.OPEN) {
+            int index = motionEvent.getActionIndex();
+            int action = motionEvent.getActionMasked();
+            int pointerId = motionEvent.getPointerId(index);
+
+            switch (action) {
+                case MotionEvent.ACTION_MOVE:
+                    if (mVelocityTracker == null) {
+                        mVelocityTracker = VelocityTracker.obtain();
+                    }
+                    mVelocityTracker.addMovement(motionEvent);
+                    if (motionEvent.getX() > rightPanel.getPreviousDownX()) {
+                        rightPanel.setX(motionEvent.getX(index) - rightPanel.getPreviousDownX());
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    mVelocityTracker.computeCurrentVelocity(1000);
+                    float xVelocity = mVelocityTracker.getXVelocity(pointerId);
+                    if (xVelocity > this.xVelocityThreshold || (motionEvent.getX() - rightPanel.getPreviousDownX() > this.xPositionThreshold)) {
+                        rightPanel.animateSwipeClose();
+                    } else {
+                        rightPanel.animateSwipeOpen();
+                    }
+                    mVelocityTracker.clear();
+                    break;
+                default:
+                    Log.d("LOGTAG", "Nothing we care about atm");
+                    break;
+            }
+
+            return true;
+        }
+
+        return true;
     }
 }

@@ -1,13 +1,11 @@
-<com.popo.mrpopo.FragmentViewContainer xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/com.popo.mrpopo"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.popo.mrpopo.MainActivity">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/mapfragmentlayout">
+
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/map"
@@ -15,18 +13,24 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context="com.popo.mrpopo.MainActivity" />
-    </LinearLayout>
 
-    <LinearLayout
+    <com.popo.mrpopo.RightPanel
+        android:id="@+id/rightpanel"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clickable="true"
-        android:id="@+id/landmarkcontentlayout">
+        android:layout_gravity="right"
+        android:background="@android:color/background_light">
 
-        <fragment
-            android:id="@+id/landmarkcontent"
-            android:name="com.popo.mrpopo.LandmarkContentFragment"
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </LinearLayout>
-</com.popo.mrpopo.FragmentViewContainer>
+            android:layout_height="match_parent">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="@dimen/activity_horizontal_margin"
+                android:text="@string/lorem"></TextView>
+        </ScrollView>
+
+    </com.popo.mrpopo.RightPanel>
+
+</FrameLayout>
