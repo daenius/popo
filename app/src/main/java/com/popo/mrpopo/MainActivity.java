@@ -1,5 +1,8 @@
 package com.popo.mrpopo;
 
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -12,6 +15,7 @@ import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.Window;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -22,7 +26,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.popo.mrpopo.com.popo.mrpopo.contentprovider.ContentDbHelper;
+import com.popo.mrpopo.com.popo.mrpopo.contentprovider.LocationContent;
 import com.popo.mrpopo.util.AppConstants;
+
+import java.util.HashMap;
+import java.util.List;
 
 
 public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener, LocationListener, LocationSource {
@@ -30,7 +39,6 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private OnLocationChangedListener mLocationChangeListener;
     private LocationManager locationManager;
-    private Marker myMarker;
 
     RightPanel rightPanel;
 
@@ -41,9 +49,11 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private int xPositionThreshold;
     private final double X_POSITION_THRESHOLD_RATIO = 0.4;
     private final double X_VELOCITY_THRESHOLD_RATIO = 0.20;
+    HashMap<Marker, String> markers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        markers = new HashMap<Marker, String>();
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         getActionBar().hide();
@@ -60,6 +70,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         this.xVelocityThreshold = (int) (this.windowWidth * X_VELOCITY_THRESHOLD_RATIO);
         locationServiceSetup();
         setUpMapIfNeeded();
+        this.performDbRead();
     }
 
     private void locationServiceSetup() {
@@ -111,21 +122,20 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 
     @Override
     public void onBackPressed() {
-        if( this.rightPanel.getCurrentContentFragmentState() == RightPanel.ContentFragmentState.OPEN){
+        if (this.rightPanel.getCurrentContentFragmentState() == RightPanel.ContentFragmentState.OPEN) {
             this.rightPanel.togglePanel();
-        }
-        else{
+        } else {
             super.onBackPressed();
         }
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (marker.equals(myMarker)) {
-            this.toggleContent();
-            return true;
-        }
-        return false;
+
+        TextView rightPanelText = (TextView) findViewById(R.id.rightpanelcontent);
+        rightPanelText.setText(markers.get(marker));
+        this.toggleContent();
+        return true;
     }
 
     private void setUpMapIfNeeded() {
@@ -160,8 +170,6 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 
             CameraUpdate cu = CameraUpdateFactory.newCameraPosition(cameraPositionBuilder.build());
             mMap.animateCamera(cu);
-            mMap.clear();
-            myMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())));
         }
     }
 
@@ -227,5 +235,45 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         }
 
         return true;
+    }
+
+    private void performDbRead() {
+        ContentDbHelper mDbHelper = new ContentDbHelper(this.getApplicationContext());
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
+                new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
+                        LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
+                        LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE,
+                        LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE},
+                null, null, null, null, null
+        );
+        while (c.moveToNext()) {
+            double lat = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE));
+            double lng = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE));
+            String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
+            String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
+            Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
+            markers.put(m, name + "\n" +  content);
+        }
+
+
+    }
+
+    private void performDbInsert() {
+        ContentDbHelper mDbHelper = new ContentDbHelper(this.getApplicationContext());
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+
+        ContentValues values = new ContentValues();
+        values.put(LocationContent.PointsOfInterest.COLUMN_NAME_ID, 0);
+        values.put(LocationContent.PointsOfInterest.COLUMN_NAME_NAME, "Trololol");
+
+// Insert the new row, returning the primary key value of the new row
+        long newRowId;
+        newRowId = db.insert(
+                LocationContent.PointsOfInterest.TABLE_NAME,
+                "null",
+                values);
     }
 }
