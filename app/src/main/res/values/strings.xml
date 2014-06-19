@@ -6,6 +6,8 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
     <string name="map_button">Map</string>
+    <string name="welcome_to">Welcome to %s!</string>
+    <string name="change_school">Looking for a different school? Tap here</string>
     <string name="title_activity_fullscreen">FullscreenActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>

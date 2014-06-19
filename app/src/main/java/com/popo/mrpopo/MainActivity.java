@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
@@ -41,6 +42,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private LocationManager locationManager;
 
     RightPanel rightPanel;
+    View welcomePanel;
 
     private int windowWidth;
 
@@ -60,6 +62,9 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         setContentView(R.layout.activity_main);
         rightPanel = (RightPanel) findViewById(R.id.rightpanel);
         rightPanel.setVisibility(View.GONE);
+
+        welcomePanel = findViewById(R.id.welcome_panel);
+        welcomePanel.animate().translationY(20);
 
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -238,42 +243,32 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     }
 
     private void performDbRead() {
-        ContentDbHelper mDbHelper = new ContentDbHelper(this.getApplicationContext());
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
-                new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
-                        LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
-                        LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE,
-                        LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE},
-                null, null, null, null, null
-        );
-        while (c.moveToNext()) {
-            double lat = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE));
-            double lng = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE));
-            String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
-            String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
-            Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
-            markers.put(m, name + "\n" +  content);
-        }
-
+        new DbAsyncTask().doInBackground();
 
     }
 
-    private void performDbInsert() {
-        ContentDbHelper mDbHelper = new ContentDbHelper(this.getApplicationContext());
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    private class DbAsyncTask extends AsyncTask<Object, Object, Cursor>{
+        protected Cursor doInBackground(Object... params) {
+            ContentDbHelper mDbHelper = new ContentDbHelper(getApplicationContext());
+            SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-
-        ContentValues values = new ContentValues();
-        values.put(LocationContent.PointsOfInterest.COLUMN_NAME_ID, 0);
-        values.put(LocationContent.PointsOfInterest.COLUMN_NAME_NAME, "Trololol");
-
-// Insert the new row, returning the primary key value of the new row
-        long newRowId;
-        newRowId = db.insert(
-                LocationContent.PointsOfInterest.TABLE_NAME,
-                "null",
-                values);
+            Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
+                    new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
+                            LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
+                            LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE,
+                            LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE},
+                    null, null, null, null, null
+            );
+            while (c.moveToNext()) {
+                double lat = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE));
+                double lng = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE));
+                String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
+                String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
+                Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
+                markers.put(m, name + "\n" +  content);
+            }
+            return c;
+        }
     }
 }
