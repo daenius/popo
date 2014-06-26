@@ -1,9 +1,8 @@
-package com.popo.mrpopo.com.popo.mrpopo.contentprovider;
+package com.popo.mrpopo.contentprovider;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.location.Location;
 
 /**
  * Created by dennizhu on 6/11/14.

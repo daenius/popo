@@ -1,4 +1,4 @@
-package com.popo.mrpopo.com.popo.mrpopo.contentprovider;
+package com.popo.mrpopo.contentprovider;
 
 import android.provider.BaseColumns;
 
@@ -20,6 +20,14 @@ public final class LocationContent {
         public static final String COLUMN_NAME_PICTURE = "picture";
         public static final String COLUMN_NAME_LAST_UPDATED = "lastupdated";
         public static final String COLUMN_NAME_NOTES = "notes";
+    }
+
+    public static abstract class Schools implements BaseColumns{
+        public static final String TABLE_NAME = "schools";
+        public static final String COLUMN_NAME_ID = BaseColumns._ID;
+        public static final String COLUMN_NAME_NAME = "name";
+        public static final String COLUMN_NAME_CENTER_LATITUDE = "centerLatitude";
+        public static final String COLUMN_NAME_CENTER_LONGITUDE = "centerLongitude";
     }
 
 }

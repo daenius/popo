@@ -26,9 +26,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.popo.mrpopo.com.popo.mrpopo.contentprovider.ContentDbHelper;
-import com.popo.mrpopo.com.popo.mrpopo.contentprovider.LocationContent;
+import com.javadocmd.simplelatlng.LatLngTool;
+import com.javadocmd.simplelatlng.util.LengthUnit;
+import com.popo.mrpopo.contentprovider.ContentDbHelper;
+import com.popo.mrpopo.contentprovider.LocationContent;
+import com.popo.mrpopo.contentprovider.School;
 import com.popo.mrpopo.util.AppConstants;
 import com.popo.mrpopo.util.DatabaseCopyUtil;
 
@@ -53,6 +55,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private final double X_POSITION_THRESHOLD_RATIO = 0.4;
     private final double X_VELOCITY_THRESHOLD_RATIO = 0.20;
     HashMap<Marker, String> markers;
+    Location mCurrentLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -175,6 +178,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
             cameraPositionBuilder = cameraPositionBuilder.target(new LatLng(location.getLatitude(), location.getLongitude()));
 
             CameraUpdate cu = CameraUpdateFactory.newCameraPosition(cameraPositionBuilder.build());
+            mCurrentLocation = location;
             mMap.animateCamera(cu);
         }
     }
@@ -243,34 +247,61 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         return true;
     }
 
+
     private void performDbRead() {
 
         new DbAsyncTask().doInBackground();
 
     }
 
-    private class DbAsyncTask extends AsyncTask<Object, Object, Cursor> {
-        protected Cursor doInBackground(Object... params) {
+    private class DbAsyncTask extends AsyncTask<Object, Object, HashMap<School, Double>>{
+        protected HashMap<School, Double> doInBackground(Object... params) {
             copyDb();
+            com.javadocmd.simplelatlng.LatLng currentLocation = new com.javadocmd.simplelatlng.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+            HashMap<School, Double> schools = new HashMap<School, Double>();
+
             ContentDbHelper mDbHelper = new ContentDbHelper(getApplicationContext());
             SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-            Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
-                    new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
-                            LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
-                            LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE,
-                            LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE},
-                    null, null, null, null, null
-            );
-            while (c.moveToNext()) {
-                double lat = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE));
-                double lng = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE));
-                String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
-                String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
-                Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
-                markers.put(m, name + "\n" + content);
+
+            Cursor schoolCursor = db.query(LocationContent.Schools.TABLE_NAME,
+                    new String[]{LocationContent.Schools.COLUMN_NAME_ID,
+                            LocationContent.Schools.COLUMN_NAME_NAME,
+                            LocationContent.Schools.COLUMN_NAME_CENTER_LATITUDE,
+                            LocationContent.Schools.COLUMN_NAME_CENTER_LONGITUDE},
+                    null,null,null,null,null);
+
+            while (schoolCursor.moveToNext()){
+                double lat = schoolCursor.getDouble(schoolCursor.getColumnIndexOrThrow(LocationContent.Schools.COLUMN_NAME_CENTER_LATITUDE));
+                double lng = schoolCursor.getDouble(schoolCursor.getColumnIndexOrThrow(LocationContent.Schools.COLUMN_NAME_CENTER_LONGITUDE));
+                double distance = LatLngTool.distance(currentLocation, new com.javadocmd.simplelatlng.LatLng(lat, lng),  LengthUnit.MILE);
+                if (distance <= AppConstants.MAX_DISTANCE_TO_CENTER_POINT){
+                    schools.put( new School(schoolCursor.getInt(schoolCursor.getColumnIndexOrThrow(LocationContent.Schools.COLUMN_NAME_ID)),
+                            schoolCursor.getString(schoolCursor.getColumnIndexOrThrow(LocationContent.Schools.COLUMN_NAME_NAME)),
+                            lat,lng), distance);
+                }
             }
-            return c;
+            if (schools.size() == 0 ){
+                Log.d("tag", "You're not near any school");
+                //FIXME Throw some sort of exception or to expand the distance since no school found.
+            }
+
+//            Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
+//                    new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
+//                            LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
+//                            LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE,
+//                            LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE},
+//                    null, null, null, null, null
+//            );
+//            while (c.moveToNext()) {
+//                double lat = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE));
+//                double lng = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE));
+//                String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
+//                String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
+//                Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
+//                markers.put(m, name + "\n" +  content);
+//            }
+            return schools;
         }
 
         private void copyDb() {

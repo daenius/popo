@@ -1,11 +1,7 @@
-package com.popo.mrpopo.com.popo.mrpopo.contentprovider;
+package com.popo.mrpopo.contentprovider;
 
-import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-
-import java.net.URL;
 
 /**
  * Created by dennizhu on 6/11/14.
