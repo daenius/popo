@@ -7,7 +7,7 @@ c = db_connect.cursor()
 # Create table
 c.execute(
     "CREATE TABLE IF NOT EXISTS poi(_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-    "name TEXT, type INTEGER, latitude REAL, longitude REAL, school_id INTEGER, content TEXT, "
+    "name TEXT, type INTEGER, latitude REAL, longitude REAL, school_id INTEGER, contenttext TEXT, "
     "picture BLOB, lastupdated INTEGER, notes TEXT, "
     "FOREIGN KEY(school_id) REFERENCES schools(_id))")
 c.execute(
