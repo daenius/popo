@@ -1,7 +1,7 @@
 package com.popo.mrpopo;
 
-import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.location.LocationListener;
@@ -30,9 +30,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.popo.mrpopo.com.popo.mrpopo.contentprovider.ContentDbHelper;
 import com.popo.mrpopo.com.popo.mrpopo.contentprovider.LocationContent;
 import com.popo.mrpopo.util.AppConstants;
+import com.popo.mrpopo.util.DatabaseCopyUtil;
 
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 
 
 public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener, LocationListener, LocationSource {
@@ -248,8 +249,9 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 
     }
 
-    private class DbAsyncTask extends AsyncTask<Object, Object, Cursor>{
+    private class DbAsyncTask extends AsyncTask<Object, Object, Cursor> {
         protected Cursor doInBackground(Object... params) {
+            copyDb();
             ContentDbHelper mDbHelper = new ContentDbHelper(getApplicationContext());
             SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
@@ -266,9 +268,33 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
                 String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
                 String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
                 Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
-                markers.put(m, name + "\n" +  content);
+                markers.put(m, name + "\n" + content);
             }
             return c;
+        }
+
+        private void copyDb() {
+            DatabaseCopyUtil myDbHelper = new DatabaseCopyUtil(getApplicationContext());
+
+            try {
+
+                myDbHelper.createDataBase();
+
+            } catch (IOException ioe) {
+
+                throw new Error("Unable to create database");
+
+            }
+
+            try {
+
+                myDbHelper.openDataBase();
+
+            } catch (SQLException sqle) {
+
+                throw sqle;
+
+            }
         }
     }
 }
