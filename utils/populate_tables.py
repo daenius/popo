@@ -1,25 +1,30 @@
 __author__ = 'dennizhu'
 import sqlite3
+import csv
 
 db_connect = sqlite3.connect('content.db')
 db_connect.row_factory = sqlite3.Row
-db2 = sqlite3.connect('../content.db')
-db2.row_factory = sqlite3.Row
-c = db_connect.cursor()
-c2 = db2.cursor()
 
-# Fill up schools table
-# c2.execute("SELECT * FROM schools")
-# records = c2.fetchall()
-# for r in records:
-#     c.execute("INSERT INTO schools ( name ) VALUES (?)", (r['name'], ))
-#
-# c.execute("UPDATE schools SET centerLatitude = 37.872219, centerLongitude = -122.258556 WHERE name=?", ('University of California', ))
+csv.register_dialect('popo', delimiter='|', quoting=csv.QUOTE_MINIMAL)
 
-c2.execute("SELECT * FROM poi")
-records = c2.fetchall()
-for r in records:
-    c.execute("INSERT INTO poi ( name, type, latitude, longitude, school_id, contenttext ) VALUES (?, ?, ?, ?, 1, ?)", (r['name'], r['type'], r['latitude'], r['longitude'], r['contenttext']))
+with open('popo_schools.csv', 'rb') as f:
+    reader = csv.DictReader(f, dialect='popo')
+    to_db = [(row['_id'], row['name'], row['centerLatitude'], row['centerLongitude']) for row in reader]
+
+cursor = db_connect.cursor()
+cursor.executemany("INSERT INTO schools (_id, name, centerLatitude, centerLongitude) VALUES (?, ?, ?, ?);", to_db)
+
+with open('popo.csv', 'rb') as f:
+    reader = csv.DictReader(f, dialect='popo')
+    to_db = [(row['name'], row['type'], row['latitude'], row['longitude'], row['school_id'], row['contenttext'],
+              row['lastupdated'], row['notes']) for row in reader]
+
+cursor.executemany(
+    "INSERT INTO poi (name, type, latitude, longitude, school_id, contenttext, lastupdated, notes) "
+    "VALUES (?, ?, ?, ?, ?, ?, ?, ?);",
+    to_db)
+
 db_connect.commit()
-db2.close()
+
+cursor.close()
 db_connect.close()
