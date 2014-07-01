@@ -26,6 +26,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.javadocmd.simplelatlng.LatLngTool;
 import com.javadocmd.simplelatlng.util.LengthUnit;
 import com.popo.mrpopo.contentprovider.ContentDbHelper;
@@ -78,33 +79,55 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         this.xPositionThreshold = (int) (this.windowWidth * X_POSITION_THRESHOLD_RATIO);
         this.xVelocityThreshold = (int) (this.windowWidth * X_VELOCITY_THRESHOLD_RATIO);
         locationServiceSetup();
-        setUpMapIfNeeded();
-        this.performDbRead();
+        setupMapIfNeeded();
+        this.getSchoolsAndPopulate();
     }
 
     private void locationServiceSetup() {
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        Location gpsLocation = null;
+        Location networkLocation = null;
         if (locationManager != null) {
 
             boolean isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
             boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
             if (isGpsEnabled) {
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, AppConstants.LOCATION_UPDATE_TIME_INTERVAL, AppConstants.LOCATION_UPDATE_DISTANCE_INTERVAL, this);
+                gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             }
             if (isNetworkEnabled) {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, AppConstants.LOCATION_UPDATE_TIME_INTERVAL, AppConstants.LOCATION_UPDATE_DISTANCE_INTERVAL, this);
+                networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             } else {
-                // FIX ME: No GPS nor Network
+                // FIX ME: No GPS nor Network. Jump Out
+
             }
+
         } else {
-            // Something is wrong with location manager
+            // Something is wrong with location manager Jump Out
+            return;
+        }
+
+        if (gpsLocation != null && networkLocation != null){
+            if (gpsLocation.getAccuracy() > networkLocation.getAccuracy()){
+                mCurrentLocation = locationManager.getLastKnownLocation(locationManager.GPS_PROVIDER);
+            }
+            else {
+                mCurrentLocation = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
+            }
+        }
+        else if (gpsLocation != null){
+            mCurrentLocation = locationManager.getLastKnownLocation(locationManager.GPS_PROVIDER);
+        }
+        else if (networkLocation != null) {
+            mCurrentLocation = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        setUpMapIfNeeded();
+        setupMapIfNeeded();
         if (locationManager != null) {
             mMap.setMyLocationEnabled(true);
         }
@@ -147,7 +170,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         return true;
     }
 
-    private void setUpMapIfNeeded() {
+    private void setupMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
             // Try to obtain the map from the SupportMapFragment.
@@ -165,6 +188,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private void setUpMap() {
         mMap.setOnMarkerClickListener(this);
         mMap.setMyLocationEnabled(true);
+
     }
 
     @Override
@@ -248,13 +272,48 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     }
 
 
-    private void performDbRead() {
+    private void getSchoolsAndPopulate() {
 
-        new DbAsyncTask().doInBackground();
+        HashMap<School, Double> nearBySchools = new DbAsyncTask().doInBackground();
+        double minDistance = Double.MAX_VALUE;
+        School closestSchool = null;
+        for (School school : nearBySchools.keySet()){
+            if (nearBySchools.get(school) < minDistance){
+                closestSchool = school;
+                minDistance = nearBySchools.get(school);
+            }
+        }
+
+        TextView welcomeToView = (TextView)findViewById(R.id.welcome_to);
+        welcomeToView.setText(closestSchool.getName());
+        new DbAsyncTask().populatePoints(closestSchool);
 
     }
 
+
     private class DbAsyncTask extends AsyncTask<Object, Object, HashMap<School, Double>>{
+
+        protected void populatePoints(School school){
+            ContentDbHelper mDbHelper = new ContentDbHelper(getApplicationContext());
+            SQLiteDatabase db = mDbHelper.getReadableDatabase();
+            String where = LocationContent.PointsOfInterest.COLUMN_NAME_ID + "=" + school.getId();
+            Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
+                        new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
+                            LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
+                            LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE,
+                            LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE},
+                    where, null, null, null, null
+            );
+            while (c.moveToNext()) {
+                double lat = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE));
+                double lng = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE));
+                String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
+                String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
+                Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
+                markers.put(m, name + "\n" +  content);
+            }
+        }
+
         protected HashMap<School, Double> doInBackground(Object... params) {
             copyDb();
             com.javadocmd.simplelatlng.LatLng currentLocation = new com.javadocmd.simplelatlng.LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
@@ -286,21 +345,6 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
                 //FIXME Throw some sort of exception or to expand the distance since no school found.
             }
 
-//            Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
-//                    new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
-//                            LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
-//                            LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE,
-//                            LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE},
-//                    null, null, null, null, null
-//            );
-//            while (c.moveToNext()) {
-//                double lat = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LATITUDE));
-//                double lng = c.getDouble(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_LONGITUDE));
-//                String name = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_NAME));
-//                String content = c.getString(c.getColumnIndexOrThrow(LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT));
-//                Marker m = mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)));
-//                markers.put(m, name + "\n" +  content);
-//            }
             return schools;
         }
 

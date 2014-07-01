@@ -27,6 +27,7 @@
             android:gravity="center"
             android:text="@string/welcome_to"/>
         <TextView
+            android:id="@+id/welcome_to_different_schools"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_below="@+id/welcome_to"
