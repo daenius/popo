@@ -16,6 +16,7 @@ public final class LocationContent {
         public static final String COLUMN_NAME_TYPE = "type";
         public static final String COLUMN_NAME_LATITUDE = "latitude";
         public static final String COLUMN_NAME_LONGITUDE = "longitude";
+        public static final String COLUMN_NAME_SCHOOL_ID = "school_id";
         public static final String COLUMN_NAME_CONTENT_TEXT = "contenttext";
         public static final String COLUMN_NAME_PICTURE = "picture";
         public static final String COLUMN_NAME_LAST_UPDATED = "lastupdated";

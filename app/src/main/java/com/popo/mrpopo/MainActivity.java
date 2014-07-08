@@ -296,7 +296,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         protected void populatePoints(School school){
             ContentDbHelper mDbHelper = new ContentDbHelper(getApplicationContext());
             SQLiteDatabase db = mDbHelper.getReadableDatabase();
-            String where = LocationContent.PointsOfInterest.COLUMN_NAME_ID + "=" + school.getId();
+            String where = LocationContent.PointsOfInterest.COLUMN_NAME_SCHOOL_ID + "=" + school.getId();
             Cursor c = db.query(LocationContent.PointsOfInterest.TABLE_NAME,
                         new String[]{LocationContent.PointsOfInterest.COLUMN_NAME_NAME,
                             LocationContent.PointsOfInterest.COLUMN_NAME_CONTENT_TEXT,
