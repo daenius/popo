@@ -1,5 +1,6 @@
 package com.popo.mrpopo;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -15,8 +16,13 @@ import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -36,7 +42,10 @@ import com.popo.mrpopo.util.AppConstants;
 import com.popo.mrpopo.util.DatabaseCopyUtil;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 
 public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener, LocationListener, LocationSource {
@@ -47,6 +56,8 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 
     RightPanel rightPanel;
     View welcomePanel;
+    TextView changeSchool;
+    ListView schoolList;
 
     private int windowWidth;
 
@@ -67,10 +78,12 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         setContentView(R.layout.activity_main);
         rightPanel = (RightPanel) findViewById(R.id.rightpanel);
         rightPanel.setVisibility(View.GONE);
-
         welcomePanel = findViewById(R.id.welcome_panel);
         welcomePanel.animate().translationY(20);
-
+        changeSchool = (TextView)findViewById(R.id.welcome_to_different_schools);
+        changeSchool.setOnClickListener(new ChangeSchoolClickListener());
+        schoolList = (ListView)findViewById(R.id.school_list);
+        schoolList.setVisibility(View.GONE);
         DisplayMetrics dm = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         this.windowWidth = dm.widthPixels;
@@ -286,9 +299,45 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
 
         TextView welcomeToView = (TextView)findViewById(R.id.welcome_to);
         welcomeToView.setText(closestSchool.getName());
+        ListView schoolList = (ListView)findViewById(R.id.school_list);
+        ArrayList<String> schoolNames = new ArrayList<String>();
+        Iterator<School> it = nearBySchools.keySet().iterator();
+        while ( it.hasNext() ){
+            schoolNames.add(it.next().getName());
+        }
+        schoolList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, schoolNames));
+        ListAdapter listAdapter = schoolList.getAdapter();
+        int totalHeight = 0;
+        for (int i = 0; i < listAdapter.getCount(); i++) {
+            View listItem = listAdapter.getView(i, null, schoolList);
+            listItem.measure(0, 0);
+            totalHeight += listItem.getMeasuredHeight();
+        }
+
+        ViewGroup.LayoutParams params = schoolList.getLayoutParams();
+        params.height = totalHeight + (schoolList.getDividerHeight() * (listAdapter.getCount() - 1));
+        schoolList.setLayoutParams(params);
+        schoolList.requestLayout();
+//        ViewGroup.LayoutParams panelParams = this.welcomePanel.getLayoutParams();
+//        panelParams.height = params.height + panelParams.height;
+//        welcomePanel.setLayoutParams(panelParams);
+//        welcomePanel.requestLayout();
         new DbAsyncTask().populatePoints(closestSchool);
 
     }
+
+    private class ChangeSchoolClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v){
+            if ( View.VISIBLE == schoolList.getVisibility() ){
+                schoolList.setVisibility(View.GONE);
+            }
+            else{
+                schoolList.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
 
 
     private class DbAsyncTask extends AsyncTask<Object, Object, HashMap<School, Double>>{

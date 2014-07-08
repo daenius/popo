@@ -15,10 +15,11 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="wrap_content"
         android:id="@+id/welcome_panel"
         android:textAlignment="center"
-        android:background="@color/common_signin_btn_dark_text_focused">
+        android:background="@color/common_signin_btn_dark_text_focused"
+        android:clickable="true">
         <TextView
             android:id="@+id/welcome_to"
             android:layout_width="match_parent"
@@ -33,6 +34,11 @@
             android:layout_below="@+id/welcome_to"
             android:gravity="center"
             android:text="@string/change_school"/>
+        <ListView
+            android:id="@+id/school_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/welcome_to_different_schools"></ListView>
     </RelativeLayout>
     <com.popo.mrpopo.RightPanel
         android:id="@+id/rightpanel"
