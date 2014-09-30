@@ -34,4 +34,8 @@ public class School {
         return this.centerLongitude;
     }
 
+    @Override
+    public String toString(){
+        return this.getName();
+    }
 }

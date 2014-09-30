@@ -1,6 +1,5 @@
 package com.popo.mrpopo;
 
-import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -18,11 +17,11 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -45,7 +44,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 
 
 public class MainActivity extends FragmentActivity implements GoogleMap.OnMarkerClickListener, LocationListener, LocationSource {
@@ -60,7 +58,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     ListView schoolList;
 
     private int windowWidth;
-
+    HashMap<School, Double> nearBySchools;
     private VelocityTracker mVelocityTracker = null;
     private int xVelocityThreshold;
     private int xPositionThreshold;
@@ -93,7 +91,7 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         this.xVelocityThreshold = (int) (this.windowWidth * X_VELOCITY_THRESHOLD_RATIO);
         locationServiceSetup();
         setupMapIfNeeded();
-        this.getSchoolsAndPopulate();
+        this.getNearbySchoolsAndSetCurrent();
     }
 
     private void locationServiceSetup() {
@@ -284,10 +282,16 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         return true;
     }
 
+    private void setCurrentSchool(School school){
+        TextView welcomeToView = (TextView)findViewById(R.id.welcome_to);
+        welcomeToView.setText(school.getName());
 
-    private void getSchoolsAndPopulate() {
+        new DbAsyncTask().populatePoints(school);
+    }
+    private void getNearbySchoolsAndSetCurrent() {
 
-        HashMap<School, Double> nearBySchools = new DbAsyncTask().doInBackground();
+        ArrayList<School> schools = new ArrayList<School>();
+        nearBySchools = new DbAsyncTask().doInBackground();
         double minDistance = Double.MAX_VALUE;
         School closestSchool = null;
         for (School school : nearBySchools.keySet()){
@@ -296,34 +300,22 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
                 minDistance = nearBySchools.get(school);
             }
         }
-
-        TextView welcomeToView = (TextView)findViewById(R.id.welcome_to);
-        welcomeToView.setText(closestSchool.getName());
         ListView schoolList = (ListView)findViewById(R.id.school_list);
-        ArrayList<String> schoolNames = new ArrayList<String>();
-        Iterator<School> it = nearBySchools.keySet().iterator();
-        while ( it.hasNext() ){
-            schoolNames.add(it.next().getName());
-        }
-        schoolList.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, schoolNames));
+        schoolList.setOnItemClickListener(new OnSelectSchoolListItemListener());
+
+        schoolList.setAdapter(new ArrayAdapter<School>(this, android.R.layout.simple_list_item_1, schools));
         ListAdapter listAdapter = schoolList.getAdapter();
-        int totalHeight = 0;
-        for (int i = 0; i < listAdapter.getCount(); i++) {
-            View listItem = listAdapter.getView(i, null, schoolList);
-            listItem.measure(0, 0);
-            totalHeight += listItem.getMeasuredHeight();
-        }
+
 
         ViewGroup.LayoutParams params = schoolList.getLayoutParams();
-        params.height = totalHeight + (schoolList.getDividerHeight() * (listAdapter.getCount() - 1));
+        params.height = schoolList.getDividerHeight() * (listAdapter.getCount() - 1);
         schoolList.setLayoutParams(params);
         schoolList.requestLayout();
-//        ViewGroup.LayoutParams panelParams = this.welcomePanel.getLayoutParams();
-//        panelParams.height = params.height + panelParams.height;
-//        welcomePanel.setLayoutParams(panelParams);
-//        welcomePanel.requestLayout();
-        new DbAsyncTask().populatePoints(closestSchool);
-
+        Iterator<School> it = nearBySchools.keySet().iterator();
+        while ( it.hasNext() ){
+            schools.add(it.next());
+        }
+        setCurrentSchool(closestSchool);
     }
 
     private class ChangeSchoolClickListener implements View.OnClickListener {
@@ -338,7 +330,14 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
         }
     }
 
-
+    private class OnSelectSchoolListItemListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            TextView v = (TextView) view;
+            School school = (School)adapterView.getItemAtPosition(i);
+            setCurrentSchool(school);
+        }
+    }
 
     private class DbAsyncTask extends AsyncTask<Object, Object, HashMap<School, Double>>{
 
