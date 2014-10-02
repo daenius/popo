@@ -341,6 +341,10 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
             TextView v = (TextView) view;
             School school = (School)adapterView.getItemAtPosition(i);
             setCurrentSchool(school);
+            /**
+             * Hide the schoollist when a school is selected
+             */
+            schoolList.setVisibility(View.GONE);
         }
     }
 
