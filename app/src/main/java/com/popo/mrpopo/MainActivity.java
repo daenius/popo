@@ -285,8 +285,13 @@ public class MainActivity extends FragmentActivity implements GoogleMap.OnMarker
     private void setCurrentSchool(School school){
         TextView welcomeToView = (TextView)findViewById(R.id.welcome_to);
         welcomeToView.setText(school.getName());
-
+        clearAllMarkers();
         new DbAsyncTask().populatePoints(school);
+    }
+
+    private void clearAllMarkers(){
+        mMap.clear();
+        markers.clear();
     }
     private void getNearbySchoolsAndSetCurrent() {
 
